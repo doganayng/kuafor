@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>F.K. KUAFÖR Randevu Sistemi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>✂️ F.K. KUAFÖR</h1>
+      <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">🌙 Koyu</button>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('client')">Müşteri Randevu</button>
+      <button class="tab-btn" onclick="switchTab('query')">Randevumu Sorgula</button>
+      <button class="tab-btn" onclick="switchTab('admin')">Berber Paneli</button>
+    </div>
+
+    <div id="clientTab">
+      <div class="card">
+        <h2>1. Hizmet Seçin</h2>
+        <div class="services-grid" id="servicesGrid"></div>
+      </div>
+
+      <!-- ÖZEL HİZMET UYARISI & BENİ ARA BUTONU -->
+      <div id="specialNotice" class="special-banner hidden">
+        <p>⚠️ Bu işlem özel hazırlık ve değişken süre gerektirdiği için lütfen doğrudan arayarak randevu oluşturunuz.</p>
+        <a href="tel:05521640028" class="call-btn">📞 Beni Ara (0552 164 00 28)</a>
+      </div>
+
+      <div id="standardForm">
+        <div class="card">
+          <h2>2. Tarih ve Saat Seçin</h2>
+          <div class="form-group">
+            <label for="appointmentDate">Tarih</label>
+            <input type="date" id="appointmentDate" onchange="onDateChange()">
+          </div>
+
+          <div id="sundayAlert" class="alert alert-warning">Pazar günleri dükkanımız kapalıdır. Lütfen başka bir gün seçiniz.</div>
+
+          <div id="slotsContainer">
+            <label>Uygun Saatler (30 Dakikalık Dilimler)</label>
+            <div class="slots-grid" id="slotsGrid"></div>
+          </div>
+        </div>
+
+        <div class="card hidden" id="customerDetailsCard">
+          <h2>3. Bilgilerinizi Girin</h2>
+          <form id="bookingForm" onsubmit="handleBooking(event)">
+            <div class="form-group">
+              <label for="custName">Adınız Soyadınız</label>
+              <input type="text" id="custName" placeholder="Örn: Ahmet Yılmaz" required>
+            </div>
+            <div class="form-group">
+              <label for="custPhone">Telefon Numaranız</label>
+              <input type="tel" id="custPhone" placeholder="05XXXXXXXXX" required>
+            </div>
+            <button type="submit" class="btn-submit">Randevuyu Onayla</button>
+          </form>
+        </div>
+
+        <div class="card hidden" id="successCard">
+          <div class="alert alert-success" style="display:block;">🎉 Randevunuz başarıyla oluşturuldu!</div>
+          <p id="successDetails" style="margin: 12px 0; line-height: 1.5;"></p>
+          <a id="whatsappBtn" href="#" target="_blank" class="call-btn wa-btn">
+            📱 WhatsApp ile Berberine Bilgi Gönder
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div id="queryTab" class="hidden">
+      <div class="card">
+        <h2>🔍 Randevu Sorgula & İptal Et</h2>
+        <p style="margin-bottom: 14px; color: var(--text-muted); font-size: 0.85rem;">
+          Sistemde kayıtlı randevunuzu görmek veya iptal etmek için telefon numaranızı giriniz.
+        </p>
+        <form onsubmit="handleQueryAppointment(event)">
+          <div class="form-group">
+            <input type="tel" id="queryPhoneInput" placeholder="05XXXXXXXXX" required>
+          </div>
+          <button type="submit" class="btn-submit">Randevumu Bul</button>
+        </form>
+      </div>
+
+      <div id="queryResultsCard" class="card hidden">
+        <h2>Mevcut Randevularınız</h2>
+        <div id="queryResultsList" class="admin-list"></div>
+      </div>
+    </div>
+
+    <div id="adminTab" class="hidden">
+      <!-- PIN GİRİŞ EKRANI -->
+      <div class="card" id="adminAuthCard">
+        <h2>🔒 Berber Paneli Girişi</h2>
+        <p style="margin-bottom: 14px; color: var(--text-muted); font-size: 0.85rem;">
+          Yönetim paneline erişmek için 4 haneli PIN kodunu giriniz.
+        </p>
+        <form onsubmit="verifyAdminPin(event)">
+          <div class="form-group">
+            <input type="password" id="adminPinInput" maxlength="4" placeholder="••••" required style="text-align: center; font-size: 1.4rem; letter-spacing: 6px;">
+          </div>
+          <div id="pinError" class="alert alert-warning hidden">Hatalı PIN kodu!</div>
+          <button type="submit" class="btn-submit">Panele Giriş Yap</button>
+        </form>
+      </div>
+
+      <div class="card hidden" id="adminContentCard">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2>F.K. KUAFÖR Yönetim Paneli</h2>
+          <button type="button" class="theme-btn" onclick="logoutAdmin()" style="font-size: 0.8rem; padding: 6px 12px; background: var(--danger); color: #fff; border: none;">Çıkış Yap</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Bugünkü Randevu</span>
+            <span class="stat-value" id="statTodayBooked">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Günlük Doluluk</span>
+            <span class="stat-value" id="statTodayRate">%0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">En Popüler Hizmet</span>
+            <span class="stat-value" id="statTopService" style="font-size:0.95rem;">-</span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:20px;">
+          <label for="adminDate">Tarih Seçin</label>
+          <input type="date" id="adminDate" onchange="renderAdminSlots()">
+        </div>
+        <div class="admin-list" id="adminSlotsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
